@@ -1,185 +1,144 @@
 #include "dynamic_array.h"
 
-#include <stddef.h>
-#include <stdlib.h>
-#include <stdio.h>
+#include <stdio.h> //为了使用printf函数
+#include <stdlib.h> //为了使用malloc,realloc,free函数
 
-#define INITIAL_CAPACITY 10
+#define INITIAL_CAPACITY 10; //默认初始容量
 
-static int resize_array(DynamicArray* arr, size_t new_capacity)
+// 静态内部函数，用来给动态数组进行扩容和缩容操作
+static bool resize_array(DynamicArray* array, size_t new_capacity)
 {
-	Data* new_arr = realloc(arr->data , new_capacity * sizeof(Data));
+	// 使用realloc重置动态数组的容量
+	Data* new_array = realloc(array->data, new_capacity);
 
-	if (new_arr == NULL)
+	if (new_array == NULL)
 	{
-		perror("扩容失败");
-		return -1;
+		perror("重置动态数组容量失败！");
+		return false;
 	}
 
-	arr->data = new_arr;
-	arr->capacity = new_capacity;
+	array->data = new_array;
+	array->capacity = new_capacity;
 
-	return 1;
+	return true;
 }
 
 DynamicArray* create_array(size_t initial_capacity)
 {
 	if (initial_capacity == 0)
 	{
-		initial_capacity = INITIAL_CAPACITY;
+		initial_capacity == INITIAL_CAPACITY;
 	}
 
-	DynamicArray* arr = (DynamicArray*)malloc(sizeof(DynamicArray));
+	DynamicArray* array = (DynamicArray*)malloc(sizeof(DynamicArray));
 
-	if (arr == NULL)
+	if (array == NULL)
 	{
-		perror("创建动态数组结构体失败！");
+		perror("申请DynamicArray结构体动态内存失败！");
 		return NULL;
 	}
 
-	arr->data = (Data*)malloc(sizeof(Data) * initial_capacity);
+	array->data = (Data*)malloc(initial_capacity * sizeof(Data));
 
-	if (arr->data == NULL)
+	if (array->data == NULL)
 	{
-		free(arr);
-		perror("创建动态数组失败！");
+		perror("申请array->data数组动态内存失败！");
+		free(array);
 		return NULL;
 	}
 
-	arr->size = 0;
-	arr->capacity = initial_capacity;
+	array->size = 0;
+	array->capacity = initial_capacity;
 
-	return arr;
+	return array;
 }
 
-void destroy_array(DynamicArray* arr)
+void destroy_array(DynamicArray* array)
 {
-	if (arr)
+	if (array && array->data)
 	{
-		free(arr->data);
-		free(arr);
+		//释放，并防止悬挂指针
+		free(array->data);
+		array->data = NULL;
+
+		free(array);
+		array = NULL;
 	}
 }
 
-void array_append(DynamicArray* arr, Data value)
+void array_append(DynamicArray* array, Data value)
 {
-	if (arr->size >= arr->capacity)
+	// 当动态数组已满时继续插入，会触发扩容操作
+	if (array->size == array->capacity)
 	{
-		size_t new_capacity = arr->capacity * 2;
-		resize_array(arr, new_capacity);
+		size_t new_capacity = array->capacity;
+		resize_array(array, new_capacity);
 	}
 
-	arr->data[arr->size] = value;
+	//后缀递增，先用后加，每次尾部插入之后，size会自己更新
+	array->data[array->size++] = value;
 
-	arr->size++;
 }
 
-Data* array_read(DynamicArray* arr, size_t index)
+Data* array_read(DynamicArray* array, size_t index)
 {
-	if (index >= arr->size)
+	if (index >= array->size)
 	{
-		printf("超出范围，无效访问\n");
+		perror("超出索引范围，无效访问");
 		return NULL;
 	}
 
-	return &(arr->data[index]);
+	// 返回查找到的元素的地址
+	return &(array->data[index]);
 }
 
-int array_update(DynamicArray* arr, size_t index, Data value)
+bool array_update(DynamicArray* array, size_t index, Data value)
 {
-	if (index >= arr->size)
+	if (index >= array->size)
 	{
-		printf("查出范围，无效更新\n");
-		return -1;
+		perror("超出索引范围，无效访问");
+		return false;
 	}
 
-	arr->data[index] = value;
+	array->data[index] = value;
 
-	return 1;
+	return true;
 }
 
-int array_insert(DynamicArray* arr, size_t index, Data value)
+bool array_insert(DynamicArray* array, size_t index, Data value)
 {
-	if (index > arr->size)
+	// 动漫数组已满继续插入，触发扩容操作
+	if (array->size == array->capacity)
 	{
-		printf("超出插入范围，无效操作\n");
-		return -1;
+		size_t new_capacity = array->capacity;
+		resize_array(array, new_capacity);
 	}
 
-	if (arr->size >= arr->capacity)
+	// 有扩容操作，所以在数组已满并触发扩容操作之后，
+	// 可以在 array->size 的位置进行插入
+	if (index > array->size)
 	{
-		size_t new_capacity = arr->capacity * 2;
-		resize_array(arr, new_capacity);
+		perror("超出插入范! 无效插入!");
+		return false;
 	}
 
-	for (size_t i = arr->size; i > index; i--)
+	// 从末尾开始，把元素一个一个往后挪，给待插入的元素留出空间
+	for (size_t i = array->size; i > index; i--)
 	{
-		arr->data[i] = arr->data[i - 1];
+		array->data[i] = array->data[i - 1];
 	}
 
-	arr->data[index] = value;
+	array->data[index] = value;
 
-	arr->size++;
+	//更新元素数目
+	array->size++;
 
-	return 1;
+	return true;
 }
 
-int array_delete(DynamicArray* arr, size_t index)
+bool array_delete(DynamicArray* array, size_t index)
 {
-	if (index >= arr->size)
-	{
-		printf("超出删除范围，无效操作！\n");
-		return -1;
-	}
-
-	for (size_t i = index; i < arr->size - 1; i++)
-	{
-		arr->data[i] = arr->data[i + 1];
-	}
-
-	arr->size--;
-
-	if (arr->size > 0 && arr->size <= arr->capacity / 4 && arr->capacity >= INITIAL_CAPACITY)
-	{
-		size_t new_capacity = arr->capacity / 2;
-
-		// 保证缩容后的容量仍然能够装得下所有元素，并且不会小于初始容量
-
-		if (new_capacity < arr->size)
-		{
-
-			new_capacity = arr->size;
-		}
-
-		if (new_capacity < INITIAL_CAPACITY)
-		{
-
-			new_capacity = INITIAL_CAPACITY;
-		}
-
-		printf("\n---> [缩容警告!] Size (%zu) <= Capacity/4 (%zu). 准备缩容至 %zu. \n",
-
-			arr->size, arr->capacity / 4, new_capacity);
-
-		resize_array(arr, new_capacity);
-	}
-
-
-	return 1;
+	
 }
 
-void print_array(const DynamicArray* arr)
-{
-	printf("打印数组： Size（%zu） Capacity（%zu）\n", arr->size, arr->capacity);
-
-	printf("[ ");
-
-	for (int i = 0; i < arr->size; i++)
-	{
-		printf("%d ", arr->data[i]);
-	}
-
-	printf(" ]\n");
-}
-
-
+void print_array(const DynamicArray* array , void (*print_func)(const void* data));
