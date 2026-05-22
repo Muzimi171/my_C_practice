@@ -3,7 +3,7 @@
 #include <stdio.h> //为了使用printf函数
 #include <stdlib.h> //为了使用malloc,realloc,free函数
 
-#define INITIAL_CAPACITY 10; //默认初始容量
+#define INITIAL_CAPACITY 10 //默认初始容量
 
 // 静态内部函数，用来给动态数组进行扩容和缩容操作
 static bool resize_array(DynamicArray* array, size_t new_capacity)
@@ -27,7 +27,7 @@ DynamicArray* create_array(size_t initial_capacity)
 {
 	if (initial_capacity == 0)
 	{
-		initial_capacity == INITIAL_CAPACITY;
+		initial_capacity = INITIAL_CAPACITY;
 	}
 
 	DynamicArray* array = (DynamicArray*)malloc(sizeof(DynamicArray));
@@ -138,7 +138,39 @@ bool array_insert(DynamicArray* array, size_t index, Data value)
 
 bool array_delete(DynamicArray* array, size_t index)
 {
-	
+	if (index >= array->size)
+	{
+		perror("超出索引范围，无效访问");
+
+		return false;
+	}
+
+	// 先让我自己试着写一下，codex你先不要急
+
+	for (size_t i = index; i < array->size -1; i++)
+	{
+		array->data[i] = array->data[i + 1];
+	}
+
+	array->size--;
+
+	// 当动态数组的元素数量小于容量的四分之一时，触发缩容操作
+	// 缩容时，容量至少要保持在初始容量以上，避免过度缩容导致频繁扩容和缩容的性能问题
+	if (array->size > 0 && array->size < array->capacity/4 && array->capacity > INITIAL_CAPACITY)
+	{
+		size_t new_capacity = array->capacity / 2;
+
+		if (new_capacity < INITIAL_CAPACITY)
+		{
+			new_capacity = INITIAL_CAPACITY;
+		}
+
+		resize_array(array, new_capacity);
+	}
+
 }
 
-void print_array(const DynamicArray* array , void (*print_func)(const void* data));
+void print_array(const DynamicArray* array , void (*print_func)(const void* data))
+{
+
+}
