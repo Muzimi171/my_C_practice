@@ -34,7 +34,7 @@ DynamicArray* create_array(size_t initial_capacity)
 
 	if (array == NULL)
 	{
-		perror("申请DynamicArray结构体动态内存失败！");
+		perror("申请DynamicArray结构体动态内存失败!");
 		return NULL;
 	}
 
@@ -42,7 +42,7 @@ DynamicArray* create_array(size_t initial_capacity)
 
 	if (array->data == NULL)
 	{
-		perror("申请array->data数组动态内存失败！");
+		perror("申请array->data数组动态内存失败!");
 		free(array);
 		return NULL;
 	}
@@ -71,7 +71,8 @@ void array_append(DynamicArray* array, Data value)
 	// 当动态数组已满时继续插入，会触发扩容操作
 	if (array->size == array->capacity)
 	{
-		size_t new_capacity = array->capacity;
+		printf("当前动态数组已满,检测到array_append操作,开始扩容\n");
+		size_t new_capacity = array->capacity * 2;
 		resize_array(array, new_capacity);
 	}
 
@@ -110,7 +111,8 @@ bool array_insert(DynamicArray* array, size_t index, Data value)
 	// 动漫数组已满继续插入，触发扩容操作
 	if (array->size == array->capacity)
 	{
-		size_t new_capacity = array->capacity;
+		printf("当前动态数组已满,检测到array_insert操作,开始扩容\n");
+		size_t new_capacity = array->capacity * 2;
 		resize_array(array, new_capacity);
 	}
 
@@ -118,7 +120,7 @@ bool array_insert(DynamicArray* array, size_t index, Data value)
 	// 可以在 array->size 的位置进行插入
 	if (index > array->size)
 	{
-		perror("超出插入范! 无效插入!");
+		perror("超出插入范围! 无效插入!");
 		return false;
 	}
 
@@ -140,37 +142,68 @@ bool array_delete(DynamicArray* array, size_t index)
 {
 	if (index >= array->size)
 	{
-		perror("超出索引范围，无效访问");
-
+		perror("超出删除范围，无效删除！");
 		return false;
 	}
 
-	// 先让我自己试着写一下，codex你先不要急
-
-	for (size_t i = index; i < array->size -1; i++)
+	// 因为删除了元素，所以后面的元素要一个一个往前挪
+	for (size_t i = index; i < array->size-1 ; i++)
 	{
 		array->data[i] = array->data[i + 1];
 	}
 
+	// 更新元素数目
 	array->size--;
 
-	// 当动态数组的元素数量小于容量的四分之一时，触发缩容操作
-	// 缩容时，容量至少要保持在初始容量以上，避免过度缩容导致频繁扩容和缩容的性能问题
-	if (array->size > 0 && array->size < array->capacity/4 && array->capacity > INITIAL_CAPACITY)
+	// 当size = Capacity/4 时，触发扩容，capcity变为原来的二分之一
+	// 并且只有当Capacity大于默认初始容量INITIAL_CAPACITY时才能触发，
+	// 防止频繁的触发扩容和缩容，造成性能的损耗
+	if (array->size > 0 && array->size <= array->capacity/4 && array->capacity >= INITIAL_CAPACITY)
 	{
 		size_t new_capacity = array->capacity / 2;
 
+		// 防止缩容后容量不够（虽然我觉得不太必要）
+		if (new_capacity < array->size)
+		{
+			new_capacity = array->size;
+		}
+
+		// 防止频繁触发扩容和缩容操作
 		if (new_capacity < INITIAL_CAPACITY)
 		{
 			new_capacity = INITIAL_CAPACITY;
 		}
 
-		resize_array(array, new_capacity);
+		printf("\n检测到Size: %zu  , Capacity: %zu, Size <= Capacity/4: %zu , Capacity 缩容为原来的二分之一: %zu\n", array->size, array->capacity, array->capacity/4, new_capacity);
+
+		resize_array(array , new_capacity);
+		
 	}
+
+	return true;
 
 }
 
+// *print_func是一个回调函数，用来传入 返回值是void， 参数是 const void* 类型的函数
 void print_array(const DynamicArray* array , void (*print_func)(const void* data))
 {
+	if (!print_func)
+	{
+		printf("错误：没有提供打印函数！\n");
 
+		return;
+	}
+
+	printf("Array (Size : %zu, Capacity : %zu) : \n", array->size, array->capacity);
+
+	for (size_t i = 0; i < array->size; i++)
+	{
+		print_func(&array->data[i]);
+
+		printf("   ");
+		
+	}
+
+	printf("\n\n");
+	
 }

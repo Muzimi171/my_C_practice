@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "DoublyLinked.h"
+#include "doubly_linked.h"
 
 int main(void)
 {

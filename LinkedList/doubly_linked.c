@@ -1,5 +1,5 @@
 #define _CRT_SECURE_NO_WARNINGS
-#include "DoublyLinked.h"
+#include "doubly_linked.h"
 
 #include <stdio.h>
 #include <string.h>
