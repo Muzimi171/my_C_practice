@@ -9,7 +9,7 @@ typedef struct Node {
 } Node;
 
 // 创建一个新节点
-Node* createNode(int data);
+Node* create_node(int data);
 
 // 在链表尾部插入一个新节点， headRef是指向head指针的指针
 // 在没有全局变量，没有返回值的情况下，凡是涉及到head指针的改动，我们使用多重指针，
@@ -17,19 +17,19 @@ Node* createNode(int data);
 void list_append(Node** headRef , int data);
 
 // 在链表头部插入一个新节点，涉及到对头指针head的修改，使用多重指针
-void prependNode(Node** headRef, int data);
+void list_prepend(Node** headRef, int data);
 
 // 打印链表，因为没有涉及到修改操作，所以不需要多重指针
-void printList(Node* head);
+void list_print(Node* head);
 
 // 查找链表里的指定节点
-Node* findNode(Node* head, int data);
+Node* find_list_node(Node* head, int data);
 
 // 在目标节点的后面插入一个新节点，一般用于在中间插入
-void insertNode(Node** headRef, int targetData , int insert_data);
+void insert_list_node(Node** headRef, int targetData , int insert_data);
 
-// 更新查找到的指定节点，与上面的findNode搭配使用
-void updateNode(Node* head, int oldData, int newData);
+// 更新查找到的指定节点，与上面的find_list_node搭配使用
+void update_list_node(Node* head, int oldData, int newData);
 
 // 删除链表中的指定节点，因为会有删除头结点的可能，所以使用多重指针，直接操作head本体，而不是操作复制的副本，
 // 因为对于复制的副本的操作，最后会随着函数的结束而被释放，导致无效操作
@@ -49,20 +49,20 @@ int main(void)
     list_append(&head, 200);
     list_append(&head, 300);
 
-    printList(head);
+    list_print(head);
 
     // 头插法测试
-    prependNode(&head, 0);
+    list_prepend(&head, 0);
 
-    printList(head);
+    list_print(head);
 
     // 中间插入测试,在200后面插入250
-    insertNode(&head, 200, 250);
+    insert_list_node(&head, 200, 250);
 
     // 更新节点测试
-    updateNode(head, 300, 290);
+    update_list_node(head, 300, 290);
     
-    printList(head);
+    list_print(head);
 
     // 删除测试
     delete_node(&head, 0);
@@ -74,7 +74,7 @@ int main(void)
 
 }
 
-Node* createNode(int data)
+Node* create_node(int data)
 {
     Node* newNode = (Node*)malloc(sizeof(Node));
     
@@ -94,7 +94,7 @@ Node* createNode(int data)
 
 void list_append(Node** headRef , int data)
 {
-    Node* newNode = createNode(data);
+    Node* newNode = create_node(data);
 
     // 卫语句
     if (newNode == NULL)
@@ -119,16 +119,16 @@ void list_append(Node** headRef , int data)
 
 }
 
-void prependNode(Node** headRef, int data)
+void list_prepend(Node** headRef, int data)
 {
-    Node* newNode = createNode(data);
+    Node* newNode = create_node(data);
 
     newNode->next = *headRef;
 
     *headRef = newNode;
 }
 
-void printList(Node* head)
+void list_print(Node* head)
 {
     Node* current = head;
 
@@ -145,7 +145,7 @@ void printList(Node* head)
 }
 
 
-Node* findNode(Node* head, int data)
+Node* find_list_node(Node* head, int data)
 {
     Node* current = head;
 
@@ -170,9 +170,9 @@ Node* findNode(Node* head, int data)
     return NULL;
 }
 
-void insertNode(Node** headRef, int targetData , int insert_data)
+void insert_list_node(Node** headRef, int targetData , int insert_data)
 {
-    Node* insert_node = createNode(insert_data);
+    Node* insert_node = create_node(insert_data);
 
     if (*headRef == NULL)
     {
@@ -180,7 +180,7 @@ void insertNode(Node** headRef, int targetData , int insert_data)
         return;
     }
 
-    Node* targetNode = findNode(*headRef , targetData);
+    Node* targetNode = find_list_node(*headRef , targetData);
 
     if (targetNode == NULL)
     {
@@ -192,9 +192,9 @@ void insertNode(Node** headRef, int targetData , int insert_data)
     targetNode->next = insert_node;
 }
 
-void updateNode(Node* head, int oldData, int newData)
+void update_list_node(Node* head, int oldData, int newData)
 {
-    Node* target_node = findNode(head, oldData);
+    Node* target_node = find_list_node(head, oldData);
 
     if(target_node != NULL)
     {
