@@ -1,191 +1,135 @@
 #include "singly_linked.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 
-#include <string.h>
+// 如果Student结构体内的name字段是char*类型且由malloc分配，
+// 那么还需要引入 <string.h>
 
 
+// 我们自己定义的打印函数, 要符合print_singly_list函数中void (*print_func) (const void* data)的函数指针类型要求
 
-// 1. 定义“打印”回调
+void print_student(const void* data)
+{
+    const Student* student = (const Student*)data;
 
-void print_student(const void* data) {
-
-    const Student* s = (const Student*)data;
-
-    printf("{ID: %d, 姓名: %s, 年龄: %d}", s->id, s->name, s->age);
-
+    printf("{ ID : %d , Name : %s , Age : %d }", student->id, student->name, student->age);
 }
 
+// 定义一个ID比较函数，比较标准是student->id与target->id是否相等
+// 相等就返回1，不相等就返回0
+// 并且函数本身的参数类型要符合find_singly_node函数中int (*compare_func) (const void* a, const void* b)的函数指针类型要求
+int compare_student_id(const void* a, const void* b)
+{
+    const Student* student = (const Student*)a;
 
+    const Student* target = (const Student*)b;
 
-// 2. 定义一个简单的“比较”回调 (只按ID比较)
-
-int compare_by_id(const void* a, const void* b) {
-
-    // 这个函数不需要额外的上下文，所以 context 参数被忽略
-
-    // (void)context; // 明确表示我们有意不使用这个参数，避免编译器警告
-
-
-
-    const Student* s_a = (const Student*)a;
-
-    const Student* target_s = (const Student*)b;
-
-    return s_a->id == target_s->id ? 0 : 1; // 返回0表示相等
-
+    // 三目运算符 , 相同返回1， 不相同返回0
+    return (student->id == target->id) ? 1 : 0;
 }
 
+// 定义一个复杂的比较函数，比较标准是student->age与target->age是否相等
+// 以及 student->name与target->name是否相等
+// 只有当年龄和名字都相等时才返回1，否则返回0
+int compare_student_id_and_age(const void* a, const void* b)
+{
+    const Student* student = (const Student*)a;
 
+    const Student* target = (const Student*)b;
 
-// 3. 定义一个复杂的“比较”回调 (需要使用上下文)
-
-//    上下文结构体，用于打包额外参数
-
-typedef struct {
-
-    int min_age_required;
-
-} SearchContext;
-
-
-
-int compare_by_id_and_min_age(const void* a, const void* b) {
-
-    const Student* s_a = (const Student*)a;
-
-    const Student* target_s = (const Student*)b;
-
-
-
-    // 复杂的比较逻辑
-
-    if (s_a->id == target_s->id && s_a->age >= 0) {
-
-        return 0; // 所有条件满足，视为相等
-
-    }
-
-    return 1; // 否则不相等
-
+    return ((student->age == target->age) && (student->id == target->id)) ? 1 : 0;
 }
 
+// void free_student_name(void* data)
+// 如果Student结构体内的name字段是char*类型且由malloc分配，
+//那么我们还需要定义一个函数 free_student_name 来释放Student结构体内的name字段所占用的内存，避免内存泄漏, 然后再free整个节点。
+// 但是在这个案例中Student结构体的name字段是一个固定长度的字符数组，所以不需要额外的内存释放操作，因此free_student_name函数在这个案例中可以直接省略掉，或者定义一个空函数来占位。
 
-
-// 4. 定义“释放Data内部资源”的回调 (本例中为空，仅作演示)
-
-void free_student_data(void* data) {
-
-    // 如果 Student 结构体内的 name 是 char* 类型且由 malloc 分配，
-
-    // 此处就需要 free(((Student*)data)->name);
-
-}
-
-
-
-
-
-
-
-int main(void) {
-
+int main (void)
+{
     Node* head = NULL;
 
-
-
-    // --- 初始化数据 ---
-
-    printf("--- 1. 初始化链表 ---\n");
-
-    Student students[] = {
-
-        {101, "Alice", 22},
-
-        {102, "Bob", 19},
-
-        {103, "Carol", 25},
-
-        {104, "David", 19}
-
+    Student student[] = {
+        {101, "Alice", 20},
+        {102, "Marisa", 17},
+        {103, "Cirno", 9},
+        {104, "Sakuya", 25},
+        {105, "Youkari", 17}
     };
 
-    for (int i = 0; i < 4; ++i) {
-
-        appendNode(&head, students[i]);
-
+    // 尾插法测试
+    for (size_t i = 0; i < 5; i++)
+    {
+        append_singly_node(&head, student[i]);
     }
 
-    printList(head, print_student);
+    printf("初始链表：\n");
+    print_singly_list(head, print_student);
+
+    // 头插法测试
+    Student new_student = {100, "Reimu", 18};
+    prepend_singly_node(&head, new_student);
+
+    print_singly_list(head, print_student);
 
 
+    // 查找测试
+    printf("\n 查找ID为103的学生： \n");
 
-    // --- 简单查找与删除 ---
+    Student target_student = { 103, "target", 0};
 
-    printf("\n--- 2. 删除学号为103的学生(Carol) ---\n");
+    Node* found_node = find_singly_node(head, &target_student, compare_student_id);
 
-    Student target_carol = { 103, "", 0 };
-
-    deleteNode(&head, &target_carol, compare_by_id); // 简单比较，不需要上下文
-
-    printList(head, print_student);
-
-
-
-    // --- 复杂查找与更新 ---
-
-    printf("\n--- 3. 查找学号为104且年龄不小于20岁的学生 ---\n");
-
-    SearchContext ctx_fail = { 20 }; // 设置上下文：最小年龄20
-
-    Student target_david = { 104, "", 0 };
-
-    Node* found = findNode(head, &target_david, compare_by_id_and_min_age);
-
-    if (found) {
-
-        printf("找到了！\n");
-
+    if (found_node)
+    {
+        printf("找到了！ID为103的学生信息是：\n");
+        print_student(&(found_node->data));
+        printf("\n");
+    }
+    else
+    {
+        printf("未找到该学生！\n");
     }
 
-    else {
+    printf("\n 查找ID为105且年龄为17岁的学生： \n");
+   
+    target_student.id = 105;
+    target_student.age = 17;
 
+    found_node = find_singly_node(head, &target_student, compare_student_id_and_age);
 
-
-        // test
-
-        printf("没找到 (因为David只有19岁)。\n");
-
+     if (found_node)
+    {
+        printf("找到了！ID为105且年龄为17岁的学生信息是：\n");
+        print_student(&(found_node->data));
+        printf("\n");
+    }
+    else
+    {
+        printf("未找到该学生！\n");
     }
 
+    // 更新测试
+    printf("\n 更新ID为100的学生姓名： \n");
 
+    Student update_student = {100, "Koishi", 16};
 
-    printf("\n--- 4. 查找学号为101且年龄不小于20岁的学生，并更新 ---\n");
+    update_singly_node(head, &new_student, update_student, compare_student_id);
 
-    SearchContext ctx_success = { 20 }; // 设置上下文：最小年龄20
+    print_singly_list(head, print_student);
 
-    Student target_alice = { 101, "", 0 };
+    // 删除测试
 
-    Student new_alice_data = { 101, "Alicia", 23 };
+    printf("\n 删除ID为102的学生： \n");
+    Student delete_target = {102, "target", 0};
+    delete_singly_node(&head, &delete_target, compare_student_id);
 
-    updateNode(head, &target_alice, new_alice_data, compare_by_id_and_min_age);
+    print_singly_list(head, print_student);
 
-    printList(head, print_student);
+    // 测试完毕，对链表进行释放
+    free_singly_list(&head, NULL);
 
-
-
-    //// --- 清理 ---
-
-    //printf("\n--- 5. 释放所有内存 ---\n");
-
-    //freeList(&head, free_student_data);
-
-    //printf("链表已清空。\n");
-
-    //printList(head, print_student);
-
-
-
-    return 0;
+    return EXIT_SUCCESS;
 
 }

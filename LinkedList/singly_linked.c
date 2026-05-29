@@ -4,7 +4,7 @@
 
 #include "singly_linked.h"
 
-Node* createNode(Data data)
+Node* create_singly_node(Data data)
 {
     Node* newNode = (Node*)malloc(sizeof(Node));
 
@@ -20,9 +20,9 @@ Node* createNode(Data data)
     return newNode;
 }
 
-void appendNode(Node** headRef, Data data)
+void append_singly_node(Node** headRef, Data data)
 {
-    Node* newNode = createNode(data);
+    Node* newNode = create_singly_node(data);
 
     // 节点的动态内存分配失败
     if (newNode == NULL)
@@ -46,9 +46,9 @@ void appendNode(Node** headRef, Data data)
     lastNode->next = newNode;
 }
 
-void prependNode(Node** headRef, Data data)
+void prepend_singly_node(Node** headRef, Data data)
 {
-    Node* newNode = createNode(data);
+    Node* newNode = create_singly_node(data);
 
     // 节点的动态内存分配失败
     if (newNode == NULL)
@@ -61,7 +61,7 @@ void prependNode(Node** headRef, Data data)
     *headRef = newNode;
 }
 
-void printList(Node* head, void (*print_func) (const void* data))
+void print_singly_list(Node* head, void (*print_func) (const void* data))
 {
     if (!head)
     {
@@ -92,7 +92,7 @@ void printList(Node* head, void (*print_func) (const void* data))
 
 }
 
-Node* findNode(Node* head, const void* target_data, 
+Node* find_singly_node(Node* head, const void* target_data, 
 int (*compare_func) (const void* a, const void* b))
 {
     if (compare_func == NULL)
@@ -106,8 +106,8 @@ int (*compare_func) (const void* a, const void* b))
 
     while (current != NULL)
     {
-        // 两个数据相同则返回0
-        if (compare_func(&(current->data), target_data) == 0)
+        // 两个数据相同则返回1，不相同则返回0
+        if (compare_func(&(current->data), target_data) == 1)
         {
             return current;
         }
@@ -119,10 +119,10 @@ int (*compare_func) (const void* a, const void* b))
 }
 
 
-void updateNode(Node* head, const void* target_data, Data newData, 
+void update_singly_node(Node* head, const void* target_data, Data newData, 
 int (*compare_func) (const void* a, const void* b))
 {
-    Node* targetNode = findNode(head, target_data, compare_func);
+    Node* targetNode = find_singly_node(head, target_data, compare_func);
 
     if (targetNode == NULL)
     {
@@ -136,7 +136,7 @@ int (*compare_func) (const void* a, const void* b))
 }
 
 
-void deleteNode(Node** headRef, const void* target_data, 
+void delete_singly_node(Node** headRef, const void* target_data, 
 int (*compare_func) (const void* a, const void* b))
 {
     if ( !*headRef || !target_data || !compare_func)
@@ -150,8 +150,8 @@ int (*compare_func) (const void* a, const void* b))
 
     Node* prev = NULL; // 记录待删除节点的前一个节点，方便删除时建立连接
 
-    // 比较函数，两个参数相同就返回0，此时的情况是头结点是待删除节点
-    if (compare_func(&(current->data), target_data) == 0)
+    // 比较函数，两个参数相同就返回1，此时的情况是头结点是待删除节点
+    if (compare_func(&(current->data), target_data) == 1)
     {
         *headRef = current->next;
         
@@ -163,7 +163,7 @@ int (*compare_func) (const void* a, const void* b))
     }
 
     // 只要不相等，就一直遍历下去，直到相等，或者curent == NULL
-    while (current != NULL && compare_func(&current->data, target_data) != 0)
+    while (current != NULL && compare_func(&current->data, target_data) != 1)
     {
         prev = current; // 跟踪current的前一个节点
 
@@ -185,8 +185,9 @@ int (*compare_func) (const void* a, const void* b))
 
 }
 
-
-void freeList(Node** headRef, void (*free_data_func)(void* data))
+// 释放整个链表，*free_data_func是一个函数指针，如果 Student 结构体内的 name 是 char* 类型且由 malloc 分配，就需要用到这个函数指针去释放 Student 结构体内的 name 字段所占用的内存，避免内存泄漏
+// 此案例中Student结构体的name字段是一个固定长度的字符数组，所以不需要额外的内存释放操作，因此free_data_func参数在这个案例中可以传入NULL，或者直接不使用这个参数。
+void free_singly_list(Node** headRef, void (*free_data_func)(void* data))
 {
     // 链表本来就是空的，直接返回
     if (*headRef == NULL)
@@ -202,7 +203,12 @@ void freeList(Node** headRef, void (*free_data_func)(void* data))
     {
         nextNode = current->next;
 
-        free_data_func(current);
+        if (free_data_func)
+        {
+            free_data_func(&(current->data));
+        }
+
+        free(current);
 
         current = nextNode;
     }
