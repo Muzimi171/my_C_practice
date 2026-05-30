@@ -57,17 +57,17 @@ bool append(DoublyLinkedList* list, Data songData);
 // 在链表开头添加一个新的节点，存储给定的歌曲信息
 bool prepend(DoublyLinkedList* list, Data songData);
 
+// 根据歌曲标题在链表中查找节点，返回指向该节点的指针，如果没有找到则返回NULL
+Node* findByTitle(const DoublyLinkedList* list, const char* title);
+
 // 在链表的指定节点targetNode后面插入一个新的节点，存储给定的歌曲信息
 bool insertAfter(DoublyLinkedList* list, Node* targetNode, Data songData);
 
 // 删除指定节点
 bool deleteNode(DoublyLinkedList* list, Node* targetNode);
 
-// 根据歌曲标题在链表中查找节点，返回指向该节点的指针，如果没有找到则返回NULL
-Node* findByTitle(const DoublyLinkedList* list, const char* title);
-
 // 打印链表中的所有歌曲信息（正向打印）
-void printListForward();
+void printListForward(DoublyLinkedList* list);
 
 // 打印链表中的所有歌曲信息（反向打印）
-void printListBackward();
+void printListBackward(DoublyLinkedList* list);
